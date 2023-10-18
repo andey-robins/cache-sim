@@ -1,5 +1,10 @@
+import sys
+import helpers.parsing as parsers
+
+
 def cli_driver():
-    pass
+    config = parsers.arg_parser(sys.argv)
+    print(config)
 
 
 if __name__ == "__main__":
