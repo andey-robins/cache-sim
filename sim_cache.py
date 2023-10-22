@@ -15,7 +15,7 @@ def cli_driver():
     print(f'L2_ASSOC:{" "*14}{config["l2_assoc"]}')
     print(f'REPLACEMENT POLICY:    {"LRU" if config["replacement_policy"] == replacement_policies.least_recently_used else "FIFO"}')
     print(f'INCLUSION PROPERTY:    {"non-inclusive" if config["inclusion_property"] == inclusion_properties.non_inclusive else "inclusive"}')
-    print(f'trace_fille:{" "*11}{config["trace_file"]}')
+    print(f'trace_fille:{" "*11}{config["trace_file"].split("/")[-1]}')
 
     l1_cache = Cache(config['l1_size'], config['l1_assoc'], config['block_size'])
     l2_cache = Cache(config['l2_size'], config['l2_assoc'], config['block_size'])
@@ -37,6 +37,8 @@ if __name__ == "__main__":
     # debug variable to enable/disable debugging output since the assignment
     # requires very specific output formatting and it would take more time than
     # its worth to override the logging formats appropriately
+    # anywhere that checks for debug before doing output _MUST_ refer to the global
+    # value, otherwise behavior will be undefined. here there be dragons
     global debug
     debug = True
     cli_driver()
