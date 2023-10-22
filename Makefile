@@ -37,6 +37,9 @@ clean:
 	@rm -rf $(VENV_NAME)
 	@echo "Virtual environment removed."
 
+test:
+	python3 -m unittest **/tests/*.py
+
 .PHONY: venv install clean
 
 ######################################################################################
