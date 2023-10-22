@@ -9,7 +9,7 @@ import os
 script_dir = os.path.dirname(__file__)
 module_dir = os.path.join(script_dir, "..")
 sys.path.append(module_dir)
-import cache
+import foo
 
 import unittest
 import logging
@@ -19,8 +19,8 @@ import logging
 logger = logging.getLogger()
 logger.level = logging.DEBUG
 
-class TestCache(unittest.TestCase):
-    def test_hex_addr_to_cache_idx():
+class TestBar(unittest.TestCase):
+    def test_baz(self):
         stream_handler = logging.StreamHandler(sys.stdout)
         logger.addHandler(stream_handler)
 

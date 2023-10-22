@@ -33,6 +33,10 @@ def cli_driver():
         l2_cache.print_contents()
 
 if __name__ == "__main__":
+    # rather than overriding the logging class, we're going to just use a global
+    # debug variable to enable/disable debugging output since the assignment
+    # requires very specific output formatting and it would take more time than
+    # its worth to override the logging formats appropriately
     global debug
     debug = True
     cli_driver()
