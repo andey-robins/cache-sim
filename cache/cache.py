@@ -29,9 +29,6 @@ class Cache:
         __init__ takes some config parameters and two optional
         related caches and constructs a memory hierarchy of caches in accordance with those
         arguments
-
-        outer is for cache at a further level from the CPU (i.e. if this is L2, outer would be L3)
-        inner is for cache at a closer level to the CPU (i.e. if this is L2, inner would be L1)
         """
         self.sets = []
 
@@ -48,13 +45,30 @@ class Cache:
             self.sets.append(AssociativeSet(associativity))
 
     def add_outer_cache(self, related_cache: 'Cache'):
+        """
+        outer is for cache at a further level from the CPU (i.e. if this is L2, outer would be L3)
+        """
         self.outer_cache = related_cache
 
     def add_inner_cache(self, related_cache: 'Cache'):
+        """
+        inner is for cache at a closer level to the CPU (i.e. if this is L2, inner would be L1)
+        """
         self.inner_cache = related_cache
 
     def write(self, addr: str, debug: bool):
         tag, idx, _ = self.hex_addr_to_cache_idx(addr)
+
+        if debug:
+            print(f'{self.name} write : {addr}, (tag {hex(tag)[2:]}, index {idx})')
+
+        res, line = self.lookup(tag, idx)
+        if res == LookupResult.MISS:
+            # TODO: write allocation and writeback
+            # must find a victim and allocate the block
+            # invoke replacement policy to determine which line we evict
+            # if victim, update blocks based on inclusion property
+            pass
 
     def read(self, addr: str, debug: bool):
         tag, idx, _ = self.hex_addr_to_cache_idx(addr)
@@ -75,6 +89,12 @@ class Cache:
         return res, line
 
     def print_contents(self):
+        """
+        print_contents will output the entire contents of this cache
+        by invoking the to_string method on each set (which also invokes
+        to_string() on each line in the set). Formatting is consistent with
+        the memory outputs at the end of test files
+        """
         # if the cache has size 0, there is nothing to print
         if self.size == 0:
             return

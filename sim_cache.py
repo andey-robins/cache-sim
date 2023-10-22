@@ -20,9 +20,11 @@ def cli_driver():
     print(f'INCLUSION PROPERTY:    {"non-inclusive" if config["inclusion_property"] == inclusion_properties.non_inclusive else "inclusive"}')
     print(f'trace_file:{" "*12}{config["trace_file"].split("/")[-1]}')
 
+    # initialize two levels of VCache
     l1_cache = Cache(config['l1_size'], config['l1_assoc'], config['block_size'], "L1")
     l2_cache = Cache(config['l2_size'], config['l2_assoc'], config['block_size'], "L2")
 
+    # only associate the two VCaches if the second one is in use
     if l2_cache.size != 0:
         l1_cache.add_outer_cache(l2_cache)
         l2_cache.add_inner_cache(l1_cache)
@@ -30,12 +32,16 @@ def cli_driver():
     commands = parsers.parse_commands_from_file(config['trace_file'])
 
     for i, command in enumerate(commands):
-        command_num = i+1
-        op, addr = command[0], command[1][:-1] # must slice off \n
+        
+        # must slice off \n since we split on ' ' <space> not '\n'
+        op, addr = command[0], command[1][:-1]
+        
         if debug:
+            command_num = i+1 # numbers in output are 1-indexed
             print('-'*40)
             print(f'# {command_num} : {"write" if op == Command.WRITE else "read"} {addr}')
         
+        # dispatch commands to the VCache
         if op == Command.READ:
             l1_cache.read(addr, debug=debug)
         if op == Command.WRITE:
