@@ -15,7 +15,7 @@ def cli_driver():
     print(f'L2_ASSOC:{" "*14}{config["l2_assoc"]}')
     print(f'REPLACEMENT POLICY:    {"LRU" if config["replacement_policy"] == replacement_policies.least_recently_used else "FIFO"}')
     print(f'INCLUSION PROPERTY:    {"non-inclusive" if config["inclusion_property"] == inclusion_properties.non_inclusive else "inclusive"}')
-    print(f'trace_fille:{" "*11}{config["trace_file"].split("/")[-1]}')
+    print(f'trace_file:{" "*12}{config["trace_file"].split("/")[-1]}')
 
     l1_cache = Cache(config['l1_size'], config['l1_assoc'], config['block_size'])
     l2_cache = Cache(config['l2_size'], config['l2_assoc'], config['block_size'])
