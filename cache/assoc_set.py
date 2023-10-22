@@ -1,5 +1,5 @@
 from cache.line import Line
-from cache.lookup_result import LookupResult
+from cache.enums import LookupResult
 
 class AssociativeSet:
 
@@ -44,3 +44,9 @@ class AssociativeSet:
             if line.tag == tag:
                 return LookupResult.HIT, line
         return LookupResult.MISS, None
+    
+    def to_string(self) -> str:
+        s = ""
+        for line in self.lines:
+            s += line.to_string()
+        return s

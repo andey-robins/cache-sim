@@ -17,8 +17,20 @@ def cli_driver():
     print(f'INCLUSION PROPERTY:    {"non-inclusive" if config["inclusion_property"] == inclusion_properties.non_inclusive else "inclusive"}')
     print(f'trace_fille:{" "*11}{config["trace_file"]}')
 
-    cache = Cache(config['l1_size'], config['l1_assoc'], config['block_size'])
+    l1_cache = Cache(config['l1_size'], config['l1_assoc'], config['block_size'])
+    l2_cache = Cache(config['l2_size'], config['l2_assoc'], config['block_size'])
 
+    if l2_cache.size != 0:
+        l1_cache.add_outer_cache(l2_cache)
+        l2_cache.add_inner_cache(l1_cache)
+
+    commands = parsers.parse_commands_from_file(config['trace_file'])
+
+    print("===== L1 contents =====")
+    l1_cache.print_contents()
+    if l2_cache.size != 0:
+        print("===== L2 contents =====")
+        l2_cache.print_contents()
 
 if __name__ == "__main__":
     global debug

@@ -13,6 +13,9 @@
 VENV_NAME := venv
 
 # Python Interpreter
+# built with 3.12.0b3, PEP linting and some type checking may
+# fail with <= 3.11
+# PYTHON := python3.12
 PYTHON := python3
 
 # Paths
@@ -36,12 +39,22 @@ clean:
 	@echo "Removing virtual environment..."
 	@rm -rf $(VENV_NAME)
 	@echo "Virtual environment removed."
+	@echo "Removing zip archive..."
+	@rm -rf sim_cache.zip
+	@echo "Zip archive removed."
 
 test:
-	python3 -m unittest **/tests/*.py
+	@echo "Running unittests with pytest..."
+	@python3 -m unittest **/tests/*.py
 
 run:
+	@echo "Running sim_cache.py with debug0 config..."
 	python3 sim_cache.py 16 1024 2 0 0 0 ./provided/traces/gcc_trace.txt
+	@echo "---\nEnd of execution."
+
+zip:
+	zip -r sim_cache.zip sim_cache.py cache/ behavior/ helpers/ Makefile README.md LICENSE
+	@echo "Zip archive created as `sim_cache.zip`"
 
 .PHONY: venv install clean
 

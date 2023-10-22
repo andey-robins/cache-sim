@@ -1,6 +1,7 @@
 import sys
 import behavior.replacement_policies as rps
 import behavior.inclusion_properties as ips
+from cache.enums import Command
 
 def try_convert(value, default, *types):
     """
@@ -69,3 +70,34 @@ def arg_parser(args) -> dict:
         else:
             print("Too many arguments encountered. Please try again.")
     return parsed_args
+
+def parse_commands_from_file(path: str) -> [('Command', str)]:
+    """
+    parse_commands_from_file is a wrapper around `command_parser`
+    to automatically open the command file from a relative path
+
+    under the hood, just opens the file, reads in the lines, and hands the
+    lines off as arguments to `command_parser`
+    """
+    with open(path, "r") as f:
+        return command_parser(f.readlines())
+
+def command_parser(file_contents: [str]) -> [('Command', str)]:
+    """
+    command_parser will take a list of lines from a command file (such as the given
+    files for the assignment) and turn them into a list of commands and addresses
+
+    file_contents must be a list of strings where each string is a line which has
+    an 'r' or 'w' as the first character followed by a hex address
+
+    to load commands directly from a file path, use the function `parse_command_from_file`
+    """
+    commands = []
+    for line in file_contents:
+        split_line = line.split(' ')
+        op, addr = split_line[0], split_line[1]
+        if op == 'r':
+            commands.append((Command.READ, addr))
+        else:
+            commands.append((Command.WRITE, addr))
+    return commands

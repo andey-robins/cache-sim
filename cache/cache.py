@@ -1,6 +1,6 @@
 from cache.assoc_set import AssociativeSet
 from cache.line import Line
-from cache.lookup_result import LookupResult
+from cache.enums import LookupResult
 import helpers.converters as conv
 import math
 
@@ -22,7 +22,7 @@ class Cache:
 
     sets = []
 
-    def __init__(self, size: int, associativity: int, block_size: int, outer: 'Cache' = None, inner: 'Cache' = None):
+    def __init__(self, size: int, associativity: int, block_size: int):
         """
         __init__ takes some config parameters and two optional
         related caches and constructs a memory hierarchy of caches in accordance with those
@@ -31,17 +31,24 @@ class Cache:
         outer is for cache at a further level from the CPU (i.e. if this is L2, outer would be L3)
         inner is for cache at a closer level to the CPU (i.e. if this is L2, inner would be L1)
         """
-        self.outer_cache = outer
-        self.inner_cache = inner
         self.sets = []
 
         self.size = size
         self.associativity = associativity
         self.block_size = block_size
 
+        if associativity == 0 or block_size == 0:
+            return
+
         set_count = size / (associativity * block_size)
         for i in range(int(set_count)):
             self.sets.append(AssociativeSet(associativity))
+
+    def add_outer_cache(self, related_cache: 'Cache'):
+        self.outer_cache = related_cache
+
+    def add_inner_cache(self, related_cache: 'Cache'):
+        self.inner_cache = related_cache
 
     def write(self, addr: str):
         tag, idx, _ = self.hex_addr_to_cache_idx(addr)
@@ -52,6 +59,14 @@ class Cache:
     def lookup(self, tag: int, idx: int) -> ['LookupResult', Line]:
         cache_set = self.sets[idx]
         return cache_set.lookup(tag)
+
+    def print_contents(self):
+        # if the cache has size 0, there is nothing to print
+        if self.size == 0:
+            return
+        
+        for set_id in range(len(self.sets)):
+            print(f'Set     {set_id}:\t{self.sets[set_id].to_string()}')
 
     def hex_addr_to_cache_idx(self, addr: str) -> [int, int, int]:
         """
