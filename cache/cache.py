@@ -12,6 +12,7 @@ class Cache:
     even in an absense of these related caches (i.e. it's fully functional and
     won't complain if there is only a single cache instantiated)
     """
+    global debug
 
     size = 0
     associativity = 0
@@ -21,8 +22,9 @@ class Cache:
     outer_cache = None
 
     sets = []
+    name = "GenericCache"
 
-    def __init__(self, size: int, associativity: int, block_size: int):
+    def __init__(self, size: int, associativity: int, block_size: int, name: str):
         """
         __init__ takes some config parameters and two optional
         related caches and constructs a memory hierarchy of caches in accordance with those
@@ -36,6 +38,7 @@ class Cache:
         self.size = size
         self.associativity = associativity
         self.block_size = block_size
+        self.name = name
 
         if associativity == 0 or block_size == 0:
             return
@@ -50,15 +53,26 @@ class Cache:
     def add_inner_cache(self, related_cache: 'Cache'):
         self.inner_cache = related_cache
 
-    def write(self, addr: str):
+    def write(self, addr: str, debug: bool):
         tag, idx, _ = self.hex_addr_to_cache_idx(addr)
 
-    def read(self, addr: str):
+    def read(self, addr: str, debug: bool):
         tag, idx, _ = self.hex_addr_to_cache_idx(addr)
 
-    def lookup(self, tag: int, idx: int) -> ['LookupResult', Line]:
+        if debug:
+            print(f'{self.name} read : {addr}, (tag {hex(tag)[2:]}, index {idx})')
+
+        res, line = self.lookup(tag, idx, debug=debug)
+        
+
+    def lookup(self, tag: int, idx: int, debug: bool) -> ('LookupResult', Line):
         cache_set = self.sets[idx]
-        return cache_set.lookup(tag)
+        res, line = cache_set.lookup(tag)
+
+        if debug:
+            print(f'{self.name} {"hit" if res == LookupResult.HIT else "miss"}')
+
+        return res, line
 
     def print_contents(self):
         # if the cache has size 0, there is nothing to print
