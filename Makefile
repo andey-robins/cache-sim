@@ -40,6 +40,9 @@ clean:
 test:
 	python3 -m unittest **/tests/*.py
 
+run:
+	python3 sim_cache.py 16 1024 2 0 0 0 ./provided/traces/gcc_trace.txt
+
 .PHONY: venv install clean
 
 ######################################################################################

@@ -1,5 +1,5 @@
 from cache.line import Line
-from cache.cache import LookupResult
+from cache.lookup_result import LookupResult
 
 class AssociativeSet:
 

@@ -1,7 +1,6 @@
 import sys
 import behavior.replacement_policies as rps
 import behavior.inclusion_properties as ips
-from pathlib import Path
 
 def try_convert(value, default, *types):
     """
@@ -66,7 +65,7 @@ def arg_parser(args) -> dict:
             parsed_args[e] = ips.inclusive if inclusion_number == 1 else ips.non_inclusive
         elif i == 7:
             # trace_file
-            parsed_args[e] = Path(args[arg_idx])
+            parsed_args[e] = args[i]
         else:
             print("Too many arguments encountered. Please try again.")
     return parsed_args

@@ -1,12 +1,8 @@
 from cache.assoc_set import AssociativeSet
 from cache.line import Line
+from cache.lookup_result import LookupResult
 import helpers.converters as conv
-from enum import Enum
 import math
-
-class LookupResult(Enum):
-    HIT = 1
-    MISS = 2
 
 class Cache:
     """
