@@ -3,21 +3,22 @@
 # and we must do it relative to the file's location if
 # we want to be able to run the unittest command from other
 # directories
+import logging
+import unittest
+from cache.cache import Cache
 import sys
 import os
 
 script_dir = os.path.dirname(__file__)
 module_dir = os.path.join(script_dir, "..")
 sys.path.append(module_dir)
-from cache.cache import Cache
 
-import unittest
-import logging
 
 # see this SO link https://stackoverflow.com/questions/7472863/pydev-unittesting-how-to-capture-text-logged-to-a-logging-logger-in-captured-o
 # for info on injecting the logger into the unittest output capture space
 logger = logging.getLogger()
 logger.level = logging.DEBUG
+
 
 class TestCache(unittest.TestCase):
     def test_hex_addr_to_cache_idx(self):
@@ -26,9 +27,11 @@ class TestCache(unittest.TestCase):
 
         try:
             d0_cache = Cache(
-                size=1024, 
-                associativity=2, 
+                size=1024,
+                associativity=2,
                 block_size=16,
+                rep_policy=1,  # LRU
+                inc_property=2,  # NON-INCLUSIVE
                 name="L1_Test"
             )
 

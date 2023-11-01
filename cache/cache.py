@@ -69,13 +69,12 @@ class Cache:
                 f'{self.name} write : {addr}, (tag {hex(tag)[2:]}, index {idx})')
 
         res, line = self.lookup(tag, idx, debug=debug)
+        # select victim set
+        victim_set = self.sets[idx]
 
         if res == LookupResult.HIT:
             line.set_dirty()
         elif res == LookupResult.MISS:
-            # select victim set
-            victim_set = self.sets[idx]
-
             # perform the eviction of our victim to an outer cache
             victim_line = victim_set.allocate_block(
                 addr, self.replacement_policy, self.outer_cache, debug)
