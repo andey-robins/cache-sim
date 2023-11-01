@@ -123,6 +123,7 @@ class AssociativeSet:
             self.update_fifo(tag)
         else:
             print("Fatal error, invalid replacement policy detected.")
+            print(f"ReplacementPolicy={mode}")
             sys.exit()
 
     def update_lru(self, tag: int) -> None:

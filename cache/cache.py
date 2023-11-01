@@ -42,6 +42,12 @@ class Cache:
         self.block_size = block_size
         self.name = name
 
+        self.inner_cache = None
+        self.outer_cache = None
+
+        self.replacement_policy = rep_policy
+        self.inclusion_property = inc_property
+
         if associativity == 0 or block_size == 0:
             return
 
@@ -73,11 +79,20 @@ class Cache:
         victim_set = self.sets[idx]
 
         if res == LookupResult.HIT:
+            if debug:
+                print(f'{self.name} hit')
             line.set_dirty()
         elif res == LookupResult.MISS:
+            if debug:
+                print(f'{self.name} miss')
             # perform the eviction of our victim to an outer cache
             victim_line = victim_set.allocate_block(
                 addr, self.replacement_policy, self.outer_cache, debug)
+
+            if debug and not victim_line.valid:
+                print(f'{self.name} victim: none')
+            elif debug:
+                print(f'{self.name} victim: {victim_line.to_string()}')
 
             # place the newly fetched block into the victim slot in the set
             victim_line.rewrite_line(tag)
@@ -86,6 +101,9 @@ class Cache:
         # there was a cache hit or cache miss initially
         victim_set.update_replacement_tracking(
             tag, self.replacement_policy)
+        
+        print(f'{self.name} update {"LRU" if self.replacement_policy == ReplacementPolicy.LRU else "FIFO"}')
+        print(f'{self.name} set dirty')
 
     def read(self, addr: str, debug: bool):
         tag, idx, _ = self.hex_addr_to_cache_idx(addr)

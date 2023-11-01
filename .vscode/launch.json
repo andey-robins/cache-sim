@@ -1,0 +1,13 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug0",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/sim_cache.py",
+            "console": "integratedTerminal",
+            "args": ["16", "1024", "2", "0", "0", "0", "./provided/traces/gcc_trace.txt"]
+        }
+    ]
+}

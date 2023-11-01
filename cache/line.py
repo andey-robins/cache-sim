@@ -7,7 +7,7 @@ class Line:
     def __init__(self):
         self.tag = ""
         self.dirty = False
-        self.valid = True
+        self.valid = False
 
     def rewrite_line(self, tag):
         self.tag = tag
