@@ -79,12 +79,8 @@ class Cache:
         victim_set = self.sets[idx]
 
         if res == LookupResult.HIT:
-            if debug:
-                print(f'{self.name} hit')
             line.set_dirty()
         elif res == LookupResult.MISS:
-            if debug:
-                print(f'{self.name} miss')
             # perform the eviction of our victim to an outer cache
             victim_line = victim_set.allocate_block(
                 addr, self.replacement_policy, self.outer_cache, debug)
