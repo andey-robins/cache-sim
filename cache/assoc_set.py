@@ -1,11 +1,14 @@
 from cache.line import Line
 from cache.enums import LookupResult
+from behavior.enums import ReplacementPolicy
+import sys
+
 
 class AssociativeSet:
-
     """
     an AssociativeSet keeps track of a number of cache lines
-    equal to the associativity of the set
+    equal to the associativity of the set. it also tracks relevant
+    datastructures for performing eviction
     """
 
     lines = []
@@ -28,11 +31,16 @@ class AssociativeSet:
     10th least significant bits (1-indexed).
     """
 
+    lru = []
+    fifo = []
+
     def __init__(self, associativity):
         for i in range(associativity):
             self.lines.append(Line())
+        self.lru = []
+        self.fifo = []
 
-    def lookup(self, tag: int) -> ['LookupResult', Line]:
+    def lookup(self, tag: int) -> ['LookupResult', 'Line']:
         """
         lookup takes a tag and will go through the lines in the
         current set to see if one has a matching tag. It
@@ -44,7 +52,71 @@ class AssociativeSet:
             if line.tag == tag:
                 return LookupResult.HIT, line
         return LookupResult.MISS, None
-    
+
+    def select_line_for_eviction(self, mode: 'ReplacementPolicy') -> 'Line':
+        """
+        evict_block takes a replacement policy option and invalidates the
+        appropriate line according to that policy. This function assumes that
+        a line must be evicted (i.e. all lines are currently valid). That
+        validation must be performed elsewhere.
+
+        Returns the line to be evicted
+        """
+        victim_tag = ""
+
+        if mode == ReplacementPolicy.LRU:
+            victim_tag = self.lru[0]
+            self.lru = self.lru[1:]
+        elif mode == ReplacementPolicy.FIFO:
+            victim_tag = self.fifo[0]
+            self.fifo = self.fifo[1:]
+
+        for line in self.lines:
+            if line.tag == victim_tag:
+                return line
+
+    def update_replacement_tracking(self, tag: int, mode: 'ReplacementPolicy') -> None:
+        """
+        update_replacement_tracking takes a line tag and a ReplacementPolicy mode
+        and updates the appropriate datastructes in the set to maintain the
+        replacement policy. This is a handy wrapper to prevent needing to check
+        the specific policy everywhere we need to perfor updates in the cache.
+        If an invalid 'mode' is provided, will fatally exit
+
+        Returns nothing
+        """
+        if mode == ReplacementPolicy.LRU:
+            self.update_lru(tag)
+        elif mode == ReplacementPolicy.FIFO:
+            self.update_fifo(tag)
+        else:
+            print("Fatal error, invalid replacement policy detected.")
+            sys.exit()
+
+    def update_lru(self, tag: int) -> None:
+        """
+        update_lru takes a tag and updates the LRU ordering for the set
+        by moving the tag element to the end of the LRU list. The list
+        is therefore sorted from least recently used to most recently
+        used. On eviction, we remove the element at index 0
+
+        The function has no return value
+        """
+        if tag in self.lru:
+            self.lru.remove(tag)
+        self.lru.append(tag)
+
+    def update_fifo(self, tag: int) -> None:
+        """
+        update_fifo takes a tag and updates the fifo queue by adding
+        the tag if it's not already in the queue and doing nothing
+        otherwise.
+
+        The function has no return value
+        """
+        if not tag in self.fifo:
+            self.fifo.append(tag)
+
     def to_string(self) -> str:
         s = ""
         for line in self.lines:

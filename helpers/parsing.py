@@ -1,7 +1,7 @@
 import sys
-import behavior.replacement_policies as rps
-import behavior.inclusion_properties as ips
+from behavior.enums import ReplacementPolicy, InclusionProperty
 from cache.enums import Command
+
 
 def try_convert(value, default, *types):
     """
@@ -15,6 +15,7 @@ def try_convert(value, default, *types):
         except (ValueError, TypeError):
             continue
     return default
+
 
 def arg_parser(args) -> dict:
     """
@@ -35,8 +36,8 @@ def arg_parser(args) -> dict:
         trace_file: string: full name of trace file
     """
     parsed_args = {}
-    
-    positive_integer = lambda i_str: try_convert(i_str, 0, int)
+
+    def positive_integer(i_str): return try_convert(i_str, 0, int)
 
     for i, e in enumerate(["block_size", "l1_size", "l1_assoc", "l2_size", "l2_assoc", "replacement_policy", "inclusion_property", "trace_file"]):
         # 0 is the filename in sys.argv, so we need to offset by 1
@@ -59,17 +60,18 @@ def arg_parser(args) -> dict:
         elif i == 5:
             # replacement policy
             policy_number = positive_integer(args[arg_idx])
-            parsed_args[e] = rps.first_in_first_out if policy_number == 1 else rps.least_recently_used
+            parsed_args[e] = ReplacementPolicy.FIFO if policy_number == 1 else ReplacementPolicy.LRU
         elif i == 6:
             # inclusion property
             inclusion_number = positive_integer(args[arg_idx])
-            parsed_args[e] = ips.inclusive if inclusion_number == 1 else ips.non_inclusive
+            parsed_args[e] = InclusionProperty.INCLUSIVE if inclusion_number == 1 else InclusionProperty.NONINCLUSIVE
         elif i == 7:
             # trace_file
             parsed_args[e] = args[i]
         else:
             print("Too many arguments encountered. Please try again.")
     return parsed_args
+
 
 def parse_commands_from_file(path: str) -> [('Command', str)]:
     """
@@ -81,6 +83,7 @@ def parse_commands_from_file(path: str) -> [('Command', str)]:
     """
     with open(path, "r") as f:
         return command_parser(f.readlines())
+
 
 def command_parser(file_contents: [str]) -> [('Command', str)]:
     """

@@ -1,8 +1,10 @@
 from cache.assoc_set import AssociativeSet
 from cache.line import Line
 from cache.enums import LookupResult
+from behavior.enums import ReplacementPolicy, InclusionProperty
 import helpers.converters as conv
 import math
+
 
 class Cache:
     """
@@ -24,7 +26,10 @@ class Cache:
     sets = []
     name = "GenericCache"
 
-    def __init__(self, size: int, associativity: int, block_size: int, name: str):
+    replacement_policy = 0
+    inclusion_property = 0
+
+    def __init__(self, size: int, associativity: int, block_size: int, rep_policy: 'ReplacementPolicy', inc_property: 'InclusionProperty', name: str):
         """
         __init__ takes some config parameters and two optional
         related caches and constructs a memory hierarchy of caches in accordance with those
@@ -60,24 +65,61 @@ class Cache:
         tag, idx, _ = self.hex_addr_to_cache_idx(addr)
 
         if debug:
-            print(f'{self.name} write : {addr}, (tag {hex(tag)[2:]}, index {idx})')
+            print(
+                f'{self.name} write : {addr}, (tag {hex(tag)[2:]}, index {idx})')
 
-        res, line = self.lookup(tag, idx)
-        if res == LookupResult.MISS:
-            # TODO: write allocation and writeback
-            # must find a victim and allocate the block
-            # invoke replacement policy to determine which line we evict
-            # if victim, update blocks based on inclusion property
-            pass
+        res, line = self.lookup(tag, idx, debug=debug)
+
+        if res == LookupResult.HIT:
+            line.set_dirty()
+        elif res == LookupResult.MISS:
+            # select victim
+            victim_set = self.sets[idx]
+
+            # if there's already an invalid block, we don't need to evict anything
+            # so this will exit early if it finds an invalid block to replace
+            for cache_line in victim_set:
+                if not cache_line.valid:
+                    # in a full machine, this would read out to disk if necessary
+                    # but we don't in the simulator
+                    if self.outer_cache:
+                        self.outer_cache.read(addr, debug)
+
+                    cache_line.rewrite_line(tag)
+
+                    # since we exit the function early, we must still
+                    # make sure to update tracking information
+                    victim_set.update_replacement_tracking(
+                        tag, self.replacement_policy)
+                    return
+
+            # perform the eviction of our victim to an outer cache
+            victim_line = victim_set.select_line_for_eviction(
+                self.replacement_policy)
+
+            # perform a writeback if the block is dirty
+            if victim_line.dirty and self.outer_cache:
+                self.outer_cache.write(addr, debug)
+
+            # read in the block from outer cache
+            if self.outer_cache:
+                self.outer_cache.read(addr, debug)
+
+            # place the newly fetched block into the victim slot in the set
+            victim_line.rewrite_line(tag)
+
+        # update replacement policy tracking information
+        victim_set.update_replacement_tracking(
+            tag, self.replacement_policy)
 
     def read(self, addr: str, debug: bool):
         tag, idx, _ = self.hex_addr_to_cache_idx(addr)
 
         if debug:
-            print(f'{self.name} read : {addr}, (tag {hex(tag)[2:]}, index {idx})')
+            print(
+                f'{self.name} read : {addr}, (tag {hex(tag)[2:]}, index {idx})')
 
         res, line = self.lookup(tag, idx, debug=debug)
-        
 
     def lookup(self, tag: int, idx: int, debug: bool) -> ('LookupResult', Line):
         cache_set = self.sets[idx]
@@ -98,7 +140,7 @@ class Cache:
         # if the cache has size 0, there is nothing to print
         if self.size == 0:
             return
-        
+
         for set_id in range(len(self.sets)):
             print(f'Set     {set_id}:\t{self.sets[set_id].to_string()}')
 
@@ -120,8 +162,8 @@ class Cache:
         # we convert back from LSB to MSB with the reversed, then
         # have to convert from a reversed object to a string with join
         offset = int("".join(reversed(addr[:offset_len])), 2)
-        set_id = int("".join(reversed(addr[offset_len:(offset_len+sets_len)])), 2)
+        set_id = int(
+            "".join(reversed(addr[offset_len:(offset_len+sets_len)])), 2)
         tag = int("".join(reversed(addr[(offset_len+sets_len):])), 2)
 
         return [tag, set_id, offset]
-
