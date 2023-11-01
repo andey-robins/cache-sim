@@ -40,7 +40,7 @@ class AssociativeSet:
         self.lru = []
         self.fifo = []
 
-    def lookup(self, tag: int) -> ['LookupResult', 'Line']:
+    def lookup(self, tag: int) -> ('LookupResult', 'Line'):
         """
         lookup takes a tag and will go through the lines in the
         current set to see if one has a matching tag. It
@@ -53,17 +53,49 @@ class AssociativeSet:
                 return LookupResult.HIT, line
         return LookupResult.MISS, None
 
+    def allocate_block(self, addr: str, mode: 'ReplacementPolicy', outer_cache, debug: bool) -> 'Line':
+        """
+        allocate_block takes an address, a replacement policy, an outer cache, and a debug
+        flag and performs the steps to allocate a block (evicting an appropriate one, 
+        writing back if necessary, and reading from outer) before returning the cache line
+        that has been allocated
+        """
+        # find the block to replace
+        victim_line = self.select_line_for_eviction(mode)
+
+        # perform a writeback if necessary
+        if victim_line.dirty and victim_line.valid and outer_cache:
+            outer_cache.write(addr, debug)
+
+        # pull in block from higher level cache
+        if outer_cache:
+            outer_cache.read(addr, debug)
+
+        # return block for writing in the main cache write method
+        return victim_line
+
     def select_line_for_eviction(self, mode: 'ReplacementPolicy') -> 'Line':
         """
         evict_block takes a replacement policy option and invalidates the
-        appropriate line according to that policy. This function assumes that
-        a line must be evicted (i.e. all lines are currently valid). That
-        validation must be performed elsewhere.
+        appropriate line according to that policy.
 
         Returns the line to be evicted
         """
+        for line in self.lines:
+            if not line.valid:
+                # if the invalid line was in tracking somewhere, remove it
+                # before we return that line
+                if line.tag in self.lru:
+                    self.lru.remove(line.tag)
+                if line.tag in self.fifo:
+                    self.fifo.remove(line.tag)
+
+                return line
+
         victim_tag = ""
 
+        # if there were no invalid lines to replace, use the appropriate
+        # replacment policy datastructure to select one
         if mode == ReplacementPolicy.LRU:
             victim_tag = self.lru[0]
             self.lru = self.lru[1:]

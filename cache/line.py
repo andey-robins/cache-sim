@@ -12,6 +12,7 @@ class Line:
     def rewrite_line(self, tag):
         self.tag = tag
         self.set_dirty()
+        self.valid = True
 
     def set_dirty(self):
         self.dirty = True

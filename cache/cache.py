@@ -73,42 +73,18 @@ class Cache:
         if res == LookupResult.HIT:
             line.set_dirty()
         elif res == LookupResult.MISS:
-            # select victim
+            # select victim set
             victim_set = self.sets[idx]
 
-            # if there's already an invalid block, we don't need to evict anything
-            # so this will exit early if it finds an invalid block to replace
-            for cache_line in victim_set:
-                if not cache_line.valid:
-                    # in a full machine, this would read out to disk if necessary
-                    # but we don't in the simulator
-                    if self.outer_cache:
-                        self.outer_cache.read(addr, debug)
-
-                    cache_line.rewrite_line(tag)
-
-                    # since we exit the function early, we must still
-                    # make sure to update tracking information
-                    victim_set.update_replacement_tracking(
-                        tag, self.replacement_policy)
-                    return
-
             # perform the eviction of our victim to an outer cache
-            victim_line = victim_set.select_line_for_eviction(
-                self.replacement_policy)
-
-            # perform a writeback if the block is dirty
-            if victim_line.dirty and self.outer_cache:
-                self.outer_cache.write(addr, debug)
-
-            # read in the block from outer cache
-            if self.outer_cache:
-                self.outer_cache.read(addr, debug)
+            victim_line = victim_set.allocate_block(
+                addr, self.replacement_policy, self.outer_cache, debug)
 
             # place the newly fetched block into the victim slot in the set
             victim_line.rewrite_line(tag)
 
-        # update replacement policy tracking information
+        # update replacement policy tracking information regardless of whether
+        # there was a cache hit or cache miss initially
         victim_set.update_replacement_tracking(
             tag, self.replacement_policy)
 
