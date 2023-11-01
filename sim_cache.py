@@ -22,13 +22,13 @@ def cli_driver():
     print(
         f'INCLUSION PROPERTY:    {"non-inclusive" if config["inclusion_property"] == InclusionProperty.NONINCLUSIVE else "inclusive"}')
     print(f'trace_file:{" "*12}{config["trace_file"].split("/")[-1]}')
-    print(config["replacement_policy"] == ReplacementPolicy.LRU)
+
     # initialize two levels of VCache
     l1_cache = Cache(config['l1_size'], config['l1_assoc'],
                      config['block_size'], config["replacement_policy"], config["inclusion_property"], "L1")
     l2_cache = Cache(config['l2_size'], config['l2_assoc'],
                      config['block_size'], config["replacement_policy"], config["inclusion_property"], "L2")
-    print(l1_cache.replacement_policy)
+
     # only associate the two VCaches if the second one is in use
     if l2_cache.size != 0:
         l1_cache.add_outer_cache(l2_cache)

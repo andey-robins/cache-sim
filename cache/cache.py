@@ -3,7 +3,7 @@ from cache.line import Line
 from cache.enums import LookupResult
 from behavior.enums import ReplacementPolicy, InclusionProperty
 import helpers.converters as conv
-import math
+import math, sys
 
 
 class Cache:
@@ -72,7 +72,7 @@ class Cache:
 
         if debug:
             print(
-                f'{self.name} write : {addr}, (tag {hex(tag)[2:]}, index {idx})')
+                f'{self.name} write : {addr[:-1] + "0"} (tag {hex(tag)[2:]}, index {idx})')
 
         res, line = self.lookup(tag, idx, debug=debug)
         # select victim set
@@ -106,16 +106,41 @@ class Cache:
 
         if debug:
             print(
-                f'{self.name} read : {addr}, (tag {hex(tag)[2:]}, index {idx})')
+                f'{self.name} read : {addr[:-1] + "0"} (tag {hex(tag)[2:]}, index {idx})')
 
         res, line = self.lookup(tag, idx, debug=debug)
+        # select victim set
+        victim_set = self.sets[idx]
+
+        if res == LookupResult.HIT:
+            pass
+        elif res == LookupResult.MISS:
+            # perform the eviction of our victim to an outer cache
+            victim_line = victim_set.allocate_block(
+                addr, self.replacement_policy, self.outer_cache, debug)
+
+            if debug and not victim_line.valid:
+                print(f'{self.name} victim: none')
+            elif debug:
+                print(f'{self.name} victim: {victim_line.to_string()}')
+
+            # place the newly fetched block into the victim slot in the set
+            victim_line.rewrite_line(tag)
+        else:
+            print(f'A fatal error occured. LookupResult={res} encountered. Quitting.')
+            sys.exit()
+
+        victim_set.update_replacement_tracking(
+            tag, self.replacement_policy)
+        
+        print(f'{self.name} update {"LRU" if self.replacement_policy == ReplacementPolicy.LRU else "FIFO"}')
 
     def lookup(self, tag: int, idx: int, debug: bool) -> ('LookupResult', Line):
         cache_set = self.sets[idx]
         res, line = cache_set.lookup(tag)
 
         if debug:
-            print(f'{self.name} {"hit" if res == LookupResult.HIT else "miss"}')
+            print(f'{self.name} {"hit" if res == LookupResult.HIT and line.tag == tag else "miss"}')
 
         return res, line
 

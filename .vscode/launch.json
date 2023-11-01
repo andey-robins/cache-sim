@@ -8,6 +8,22 @@
             "program": "${workspaceFolder}/sim_cache.py",
             "console": "integratedTerminal",
             "args": ["16", "1024", "2", "0", "0", "0", "./provided/traces/gcc_trace.txt"]
-        }
+        },
+        {
+            "name": "simple-debug",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/sim_cache.py",
+            "console": "integratedTerminal",
+            "args": ["16", "1024", "2", "0", "0", "0", "./provided/traces/simple.txt"]
+        },
+        {
+            "name": "first20-debug",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/sim_cache.py",
+            "console": "integratedTerminal",
+            "args": ["16", "1024", "2", "0", "0", "0", "./provided/traces/20.txt"]
+        },
     ]
 }

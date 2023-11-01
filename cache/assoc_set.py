@@ -35,6 +35,7 @@ class AssociativeSet:
     fifo = []
 
     def __init__(self, associativity):
+        self.lines = []
         for i in range(associativity):
             self.lines.append(Line())
         self.lru = []
