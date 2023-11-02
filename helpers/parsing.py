@@ -67,7 +67,7 @@ def arg_parser(args) -> dict:
             parsed_args[e] = InclusionProperty.INCLUSIVE if inclusion_number == 1 else InclusionProperty.NONINCLUSIVE
         elif i == 7:
             # trace_file
-            parsed_args[e] = args[i]
+            parsed_args[e] = args[arg_idx]
         else:
             print("Too many arguments encountered. Please try again.")
     return parsed_args

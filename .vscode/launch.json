@@ -7,7 +7,7 @@
             "request": "launch",
             "program": "${workspaceFolder}/sim_cache.py",
             "console": "integratedTerminal",
-            "args": ["16", "1024", "2", "0", "0", "0", "./provided/traces/gcc_trace.txt"]
+            "args": ["16", "1024", "2", "0", "0", "0", "0", "./provided/traces/gcc_trace.txt"]
         },
         {
             "name": "simple-debug",
@@ -15,15 +15,23 @@
             "request": "launch",
             "program": "${workspaceFolder}/sim_cache.py",
             "console": "integratedTerminal",
-            "args": ["16", "1024", "2", "0", "0", "0", "./provided/traces/simple.txt"]
+            "args": ["16", "1024", "2", "0", "0", "0", "0", "./provided/traces/simple.txt"]
         },
         {
-            "name": "first20-debug",
+            "name": "first20-debug0",
             "type": "python",
             "request": "launch",
             "program": "${workspaceFolder}/sim_cache.py",
             "console": "integratedTerminal",
-            "args": ["16", "1024", "2", "0", "0", "0", "./provided/traces/20.txt"]
+            "args": ["16", "1024", "2", "0", "0", "0", "0", "./provided/traces/20.txt"]
+        },
+        {
+            "name": "first20-debug3",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/sim_cache.py",
+            "console": "integratedTerminal",
+            "args": ["16", "1024", "2", "8192", "4", "0", "0", "./provided/traces/20.txt"]
         },
     ]
 }

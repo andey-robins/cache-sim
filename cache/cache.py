@@ -3,7 +3,8 @@ from cache.line import Line
 from cache.enums import LookupResult
 from behavior.enums import ReplacementPolicy, InclusionProperty
 import helpers.converters as conv
-import math, sys
+import math
+import sys
 
 
 class Cache:
@@ -29,6 +30,8 @@ class Cache:
     replacement_policy = 0
     inclusion_property = 0
 
+    stats = {}
+
     def __init__(self, size: int, associativity: int, block_size: int, rep_policy: 'ReplacementPolicy', inc_property: 'InclusionProperty', name: str):
         """
         __init__ takes some config parameters and two optional
@@ -36,6 +39,13 @@ class Cache:
         arguments
         """
         self.sets = []
+        self.stats = {
+            'reads': 0,
+            'writes': 0,
+            'read_misses': 0,
+            'write_misses': 0,
+            'write_backs': 0
+        }
 
         self.size = size
         self.associativity = associativity
@@ -53,7 +63,7 @@ class Cache:
 
         set_count = size / (associativity * block_size)
         for i in range(int(set_count)):
-            self.sets.append(AssociativeSet(associativity))
+            self.sets.append(AssociativeSet(associativity, self.name))
 
     def add_outer_cache(self, related_cache: 'Cache'):
         """
@@ -68,6 +78,8 @@ class Cache:
         self.inner_cache = related_cache
 
     def write(self, addr: str, debug: bool):
+        self.stats['writes'] += 1
+
         tag, idx, _ = self.hex_addr_to_cache_idx(addr)
 
         if debug:
@@ -81,27 +93,29 @@ class Cache:
         if res == LookupResult.HIT:
             line.set_dirty()
         elif res == LookupResult.MISS:
+            self.stats['write_misses'] += 1
             # perform the eviction of our victim to an outer cache
-            victim_line = victim_set.allocate_block(
+            victim_line, did_wb = victim_set.allocate_block(
                 addr, self.replacement_policy, self.outer_cache, debug)
 
-            if debug and not victim_line.valid:
-                print(f'{self.name} victim: none')
-            elif debug:
-                print(f'{self.name} victim: {victim_line.to_string()}')
+            # if the allocation required a writeback, track that in stats
+            if did_wb:
+                self.stats['write_backs'] += 1
 
             # place the newly fetched block into the victim slot in the set
-            victim_line.rewrite_line(tag)
+            victim_line.rewrite_line(tag, idx, addr, dirty=True)
 
         # update replacement policy tracking information regardless of whether
         # there was a cache hit or cache miss initially
         victim_set.update_replacement_tracking(
             tag, self.replacement_policy)
-        
+
         print(f'{self.name} update {"LRU" if self.replacement_policy == ReplacementPolicy.LRU else "FIFO"}')
         print(f'{self.name} set dirty')
 
     def read(self, addr: str, debug: bool):
+        self.stats['reads'] += 1
+
         tag, idx, _ = self.hex_addr_to_cache_idx(addr)
 
         if debug:
@@ -115,24 +129,25 @@ class Cache:
         if res == LookupResult.HIT:
             pass
         elif res == LookupResult.MISS:
+            self.stats['read_misses'] += 1
             # perform the eviction of our victim to an outer cache
-            victim_line = victim_set.allocate_block(
+            victim_line, did_wb = victim_set.allocate_block(
                 addr, self.replacement_policy, self.outer_cache, debug)
 
-            if debug and not victim_line.valid:
-                print(f'{self.name} victim: none')
-            elif debug:
-                print(f'{self.name} victim: {victim_line.to_string()}')
+            # if the allocation required a writeback, track that in stats
+            if did_wb:
+                self.stats['write_backs'] += 1
 
             # place the newly fetched block into the victim slot in the set
-            victim_line.rewrite_line(tag)
+            victim_line.rewrite_line(tag, idx, addr, dirty=False)
         else:
-            print(f'A fatal error occured. LookupResult={res} encountered. Quitting.')
+            print(
+                f'A fatal error occured. LookupResult={res} encountered. Quitting.')
             sys.exit()
 
         victim_set.update_replacement_tracking(
             tag, self.replacement_policy)
-        
+
         print(f'{self.name} update {"LRU" if self.replacement_policy == ReplacementPolicy.LRU else "FIFO"}')
 
     def lookup(self, tag: int, idx: int, debug: bool) -> ('LookupResult', Line):
@@ -140,7 +155,8 @@ class Cache:
         res, line = cache_set.lookup(tag)
 
         if debug:
-            print(f'{self.name} {"hit" if res == LookupResult.HIT and line.tag == tag else "miss"}')
+            print(
+                f'{self.name} {"hit" if res == LookupResult.HIT and line.tag == tag else "miss"}')
 
         return res, line
 

@@ -59,6 +59,35 @@ def cli_driver():
         print("===== L2 contents =====")
         l2_cache.print_contents()
 
+    # calculate some meta-stats using the collected stats
+    l1_mr = (l1_cache.stats['read_misses'] + l1_cache.stats['write_misses']
+             ) / (l1_cache.stats['reads'] + l1_cache.stats['writes'])
+    l2_mr = 0
+    mem_traffic = l1_cache.stats['read_misses'] + \
+        l1_cache.stats['write_misses'] + l1_cache.stats['write_backs']
+
+    if l2_cache.size != 0:
+        l2_mr = (l2_cache.stats['read_misses'] + l2_cache.stats['write_misses']
+                 ) / (l2_cache.stats['reads'] + l2_cache.stats['writes'])
+        mem_traffic += l2_cache.stats['read_misses'] + \
+            l2_cache.stats['write_misses'] + l2_cache.stats['write_backs']
+
+    print(f"===== Simulation results (raw) =====")
+    print(f'a. number of L1 reads:        {l1_cache.stats["reads"]}')
+    print(f'b. number of L1 read misses:  {l1_cache.stats["read_misses"]}')
+    print(f'c. number of L1 writes:       {l1_cache.stats["writes"]}')
+    print(f'd. number of L1 write misses: {l1_cache.stats["write_misses"]}')
+    print('e. L1 miss rate:              %.6f' % l1_mr)
+    print(f'f. number of L1 writebacks:   {l1_cache.stats["write_backs"]}')
+    print(f'g. number of L2 reads:        {l2_cache.stats["reads"]}')
+    print(f'h. number of L2 read misses:  {l2_cache.stats["read_misses"]}')
+    print(f'i. number of L2 writes:       {l2_cache.stats["writes"]}')
+    print(f'j. number of L2 write misses: {l2_cache.stats["write_misses"]}')
+    print('k. L2 miss rate:              %.6f' %
+          l2_mr if l2_mr != 0 else 'k. L2 miss rate:              0')
+    print(f'l. number of L2 writebacks:   {l2_cache.stats["write_backs"]}')
+    print(f'm. total memory traffic:      {mem_traffic}')
+
 
 if __name__ == "__main__":
     # rather than overriding the logging class, we're going to just use a global

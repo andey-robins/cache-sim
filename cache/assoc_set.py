@@ -34,7 +34,10 @@ class AssociativeSet:
     lru = []
     fifo = []
 
-    def __init__(self, associativity):
+    name = ""
+
+    def __init__(self, associativity: int, name: str):
+        self.name = name
         self.lines = []
         for i in range(associativity):
             self.lines.append(Line())
@@ -54,26 +57,40 @@ class AssociativeSet:
                 return LookupResult.HIT, line
         return LookupResult.MISS, None
 
-    def allocate_block(self, addr: str, mode: 'ReplacementPolicy', outer_cache, debug: bool) -> 'Line':
+    def allocate_block(self, addr: str, mode: 'ReplacementPolicy', outer_cache, debug: bool) -> ('Line', bool):
         """
         allocate_block takes an address, a replacement policy, an outer cache, and a debug
         flag and performs the steps to allocate a block (evicting an appropriate one, 
         writing back if necessary, and reading from outer) before returning the cache line
-        that has been allocated
+        that has been allocated and a boolean that indicates whether a writeback occured
+        (true if yes, false if not)
         """
         # find the block to replace
         victim_line = self.select_line_for_eviction(mode)
 
+        # output which we evict right here
+        if debug and not victim_line.valid:
+            print(f'{self.name} victim: none')
+        elif debug:
+            print(f'{self.name} victim: {victim_line.to_eviction_string()}')
+
         # perform a writeback if necessary
-        if victim_line.dirty and victim_line.valid and outer_cache:
-            outer_cache.write(addr, debug)
+        did_writeback = False
+        if victim_line.dirty and victim_line.valid:
+            did_writeback = True
+
+            # we only actually perform the writeback to outer cache  if
+            # there is cache. if we were modeling memory too, this is where
+            # we would hit memory instead of an outer_cache at the lowest level
+            if outer_cache:
+                outer_cache.write(victim_line.address, debug)
 
         # pull in block from higher level cache
         if outer_cache:
             outer_cache.read(addr, debug)
 
         # return block for writing in the main cache write method
-        return victim_line
+        return (victim_line, did_writeback)
 
     def select_line_for_eviction(self, mode: 'ReplacementPolicy') -> 'Line':
         """
