@@ -69,14 +69,14 @@ class AssociativeSet:
         victim_line = self.select_line_for_eviction(mode)
 
         # output which we evict right here
-        if debug and not victim_line.valid:
+        if debug and (not victim_line or not victim_line.valid):
             print(f'{self.name} victim: none')
         elif debug:
             print(f'{self.name} victim: {victim_line.to_eviction_string()}')
 
         # perform a writeback if necessary
         did_writeback = False
-        if victim_line.dirty and victim_line.valid:
+        if victim_line and victim_line.dirty and victim_line.valid:
             did_writeback = True
 
             # we only actually perform the writeback to outer cache  if

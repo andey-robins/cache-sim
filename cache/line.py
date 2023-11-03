@@ -38,6 +38,8 @@ class Line:
 
     def invalidate(self):
         self.valid = False
+        self.tag = 0
+        # self.address = ""
 
     def to_string(self) -> str:
         if self.tag == 0:

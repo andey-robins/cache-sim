@@ -103,7 +103,8 @@ class Cache:
                 self.stats['write_backs'] += 1
 
             # place the newly fetched block into the victim slot in the set
-            victim_line.rewrite_line(tag, idx, addr, dirty=True)
+            if victim_line:
+                victim_line.rewrite_line(tag, idx, addr, dirty=True)
 
         # update replacement policy tracking information regardless of whether
         # there was a cache hit or cache miss initially
@@ -139,7 +140,8 @@ class Cache:
                 self.stats['write_backs'] += 1
 
             # place the newly fetched block into the victim slot in the set
-            victim_line.rewrite_line(tag, idx, addr, dirty=False)
+            if victim_line:
+                victim_line.rewrite_line(tag, idx, addr, dirty=False)
         else:
             print(
                 f'A fatal error occured. LookupResult={res} encountered. Quitting.')
