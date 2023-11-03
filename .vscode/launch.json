@@ -41,5 +41,13 @@
             "console": "integratedTerminal",
             "args": ["16", "1024", "2", "8192", "4", "0", "0", "./provided/traces/20.txt"]
         },
+        {
+            "name": "debug5",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/sim_cache.py",
+            "console": "integratedTerminal",
+            "args": ["16", "1024", "2", "8192", "4", "0", "1", "./provided/traces/gcc_trace.txt"]
+        },
     ]
 }

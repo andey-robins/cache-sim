@@ -57,16 +57,12 @@ zip:
 	@echo "Zip archive created as `sim_cache.zip`"
 
 diffs:
-	@echo "Running sim_cache.py with debug0 config..."
 	python3 sim_cache.py 16 1024 2 0 0 0 0 ./provided/traces/gcc_trace.txt > debug0_run.out
 	diff debug0_run.out ./provided/debug_runs/debug0.txt -w
-	@echo "Running sim_cache.py with debug1 config..."
 	python3 sim_cache.py 16 1024 1 0 0 0 0 ./provided/traces/perl_trace.txt > debug1_run.out
 	diff debug1_run.out ./provided/debug_runs/debug1.txt -w
-	@echo "Running sim_cache.py with debug2 config..."
 	python3 sim_cache.py 16 1024 2 0 0 1 0 ./provided/traces/gcc_trace.txt > debug2_run.out
 	diff debug2_run.out ./provided/debug_runs/debug2.txt -w
-	@echo "Running sim_cache.py with debug3 config..."
 	python3 sim_cache.py 16 1024 2 8192 4 0 0 ./provided/traces/gcc_trace.txt > debug3_run.out
 	diff debug3_run.out ./provided/debug_runs/debug3.txt -w
 	python3 sim_cache.py 16 1024 1 8192 4 0 0 ./provided/traces/go_trace.txt > debug4_run.out

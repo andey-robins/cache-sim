@@ -1,6 +1,6 @@
 from cache.line import Line
 from cache.enums import LookupResult
-from behavior.enums import ReplacementPolicy
+from behavior.enums import ReplacementPolicy, InclusionProperty
 import sys
 
 
@@ -57,7 +57,7 @@ class AssociativeSet:
                 return LookupResult.HIT, line
         return LookupResult.MISS, None
 
-    def allocate_block(self, addr: str, mode: 'ReplacementPolicy', outer_cache, debug: bool) -> ('Line', bool):
+    def allocate_block(self, addr: str, mode: 'ReplacementPolicy', inc_prop: 'InclusionProperty', inner_cache, outer_cache, debug: bool) -> ('Line', bool):
         """
         allocate_block takes an address, a replacement policy, an outer cache, and a debug
         flag and performs the steps to allocate a block (evicting an appropriate one, 
@@ -84,6 +84,13 @@ class AssociativeSet:
             # we would hit memory instead of an outer_cache at the lowest level
             if outer_cache:
                 outer_cache.write(victim_line.address, debug)
+
+        # in the case of an inclusive policy, when we evict from
+        # L2 we must also back invalidate in L1 and issue an L1
+        # write command back to *memory* (i.e. we only update the
+        # stats for this simulator since we aren't moving real data)
+        if inc_prop == InclusionProperty.INCLUSIVE and self.name == "L2":
+            inner_cache.back_invalidate_if_present(victim_line.address, debug)
 
         # pull in block from higher level cache
         if outer_cache:

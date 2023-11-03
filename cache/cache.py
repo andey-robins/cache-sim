@@ -96,7 +96,7 @@ class Cache:
             self.stats['write_misses'] += 1
             # perform the eviction of our victim to an outer cache
             victim_line, did_wb = victim_set.allocate_block(
-                addr, self.replacement_policy, self.outer_cache, debug)
+                addr, self.replacement_policy, self.inclusion_property, self.inner_cache, self.outer_cache, debug)
 
             # if the allocation required a writeback, track that in stats
             if did_wb:
@@ -132,7 +132,7 @@ class Cache:
             self.stats['read_misses'] += 1
             # perform the eviction of our victim to an outer cache
             victim_line, did_wb = victim_set.allocate_block(
-                addr, self.replacement_policy, self.outer_cache, debug)
+                addr, self.replacement_policy, self.inclusion_property, self.inner_cache, self.outer_cache, debug)
 
             # if the allocation required a writeback, track that in stats
             if did_wb:
@@ -159,6 +159,30 @@ class Cache:
                 f'{self.name} {"hit" if res == LookupResult.HIT and line.tag == tag else "miss"}')
 
         return res, line
+
+    def back_invalidate_if_present(self, addr: str, debug: bool) -> None:
+        # if we're trying to back invalidate an empty line, there's nothing
+        # to invalidate, so return early
+        if addr == "":
+            return
+
+        tag, idx, _ = self.hex_addr_to_cache_idx(addr)
+        victim_set = self.sets[idx]
+        res, victim_line = self.lookup(tag, idx, False)
+        if res == LookupResult.HIT:
+            if debug:
+                print(f'{self.name} invalidated: {victim_line.to_eviction_string()}')
+            victim_line.invalidate()
+
+            # once we invalidate, remove from the replacement datastructures
+            if self.replacement_policy == ReplacementPolicy.LRU and victim_line.tag in victim_set.lru:
+                victim_set.lru.remove(victim_line.tag)
+            elif self.replacement_policy == ReplacementPolicy.FIFO and victim_line.tag in victim_set.fifo:
+                victim_set.fifo.remove(victim_line.tag)
+
+            if victim_line.dirty:
+                print("L1 writeback to main memory directly")
+            #     self.stats['writes'] += 1
 
     def print_contents(self):
         """
