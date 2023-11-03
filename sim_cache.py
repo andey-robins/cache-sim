@@ -67,9 +67,9 @@ def cli_driver():
         l1_cache.stats['write_misses'] + l1_cache.stats['write_backs']
 
     if l2_cache.size != 0:
-        l2_mr = (l2_cache.stats['read_misses'] + l2_cache.stats['write_misses']
-                 ) / (l2_cache.stats['reads'] + l2_cache.stats['writes'])
-        mem_traffic += l2_cache.stats['read_misses'] + \
+        l2_mr = (l2_cache.stats['read_misses']
+                 ) / (l2_cache.stats['reads'])
+        mem_traffic = l2_cache.stats['read_misses'] + \
             l2_cache.stats['write_misses'] + l2_cache.stats['write_backs']
 
     print(f"===== Simulation results (raw) =====")

@@ -26,6 +26,14 @@
             "args": ["16", "1024", "2", "0", "0", "0", "0", "./provided/traces/20.txt"]
         },
         {
+            "name": "first20-debug2",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/sim_cache.py",
+            "console": "integratedTerminal",
+            "args": ["16", "1024", "2", "0", "0", "1", "0", "./provided/traces/20.txt"]
+        },
+        {
             "name": "first20-debug3",
             "type": "python",
             "request": "launch",
