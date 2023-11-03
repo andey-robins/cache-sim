@@ -69,28 +69,31 @@ class AssociativeSet:
         victim_line = self.select_line_for_eviction(mode)
 
         # output which we evict right here
-        if debug and (not victim_line or not victim_line.valid):
-            print(f'{self.name} victim: none')
-        elif debug:
-            print(f'{self.name} victim: {victim_line.to_eviction_string()}')
+        if debug:
+            victim_str = victim_line.to_eviction_string() if victim_line else ""
+            print(f'{self.name} victim: {victim_str if victim_str != "" else "none"}')
+
+        victim_address = victim_line.address
 
         # perform a writeback if necessary
         did_writeback = False
         if victim_line and victim_line.dirty and victim_line.valid:
             did_writeback = True
 
+            victim_line.invalidate()
+
             # we only actually perform the writeback to outer cache  if
             # there is cache. if we were modeling memory too, this is where
             # we would hit memory instead of an outer_cache at the lowest level
             if outer_cache:
-                outer_cache.write(victim_line.address, debug)
+                outer_cache.write(victim_address, debug)
 
         # in the case of an inclusive policy, when we evict from
         # L2 we must also back invalidate in L1 and issue an L1
         # write command back to *memory* (i.e. we only update the
         # stats for this simulator since we aren't moving real data)
         if inc_prop == InclusionProperty.INCLUSIVE and self.name == "L2":
-            inner_cache.back_invalidate_if_present(victim_line.address, debug)
+            inner_cache.back_invalidate_if_present(victim_address, debug)
 
         # pull in block from higher level cache
         if outer_cache:
@@ -130,6 +133,7 @@ class AssociativeSet:
 
         for line in self.lines:
             if line.tag == victim_tag:
+                # line.valid = False
                 return line
 
     def update_replacement_tracking(self, tag: int, mode: 'ReplacementPolicy') -> None:
@@ -160,6 +164,15 @@ class AssociativeSet:
 
         The function has no return value
         """
+        # clean the LRU
+        for stored_tags in self.lru:
+            found = False
+            for line in self.lines:
+                if line.tag == stored_tags:
+                    found = True
+            if not found:
+                self.lru.remove(stored_tags)
+
         if tag in self.lru:
             self.lru.remove(tag)
         self.lru.append(tag)

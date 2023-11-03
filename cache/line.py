@@ -37,9 +37,8 @@ class Line:
         self.dirty = False
 
     def invalidate(self):
+        self.rewrite_line(0, self.index, "", False)
         self.valid = False
-        self.tag = 0
-        # self.address = ""
 
     def to_string(self) -> str:
         if self.tag == 0:

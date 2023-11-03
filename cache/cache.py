@@ -174,6 +174,9 @@ class Cache:
         if res == LookupResult.HIT:
             if debug:
                 print(f'{self.name} invalidated: {victim_line.to_eviction_string()}')
+            if victim_line.dirty:
+                print("L1 writeback to main memory directly")
+
             victim_line.invalidate()
 
             # once we invalidate, remove from the replacement datastructures
@@ -181,10 +184,6 @@ class Cache:
                 victim_set.lru.remove(victim_line.tag)
             elif self.replacement_policy == ReplacementPolicy.FIFO and victim_line.tag in victim_set.fifo:
                 victim_set.fifo.remove(victim_line.tag)
-
-            if victim_line.dirty:
-                print("L1 writeback to main memory directly")
-            #     self.stats['writes'] += 1
 
     def print_contents(self):
         """
