@@ -77,7 +77,7 @@ class AssociativeSet:
 
         # perform a writeback if necessary
         did_writeback = False
-        if victim_line and victim_line.dirty and victim_line.valid:
+        if victim_line and victim_line.dirty:
             did_writeback = True
 
             victim_line.invalidate()
@@ -92,7 +92,7 @@ class AssociativeSet:
         # L2 we must also back invalidate in L1 and issue an L1
         # write command back to *memory* (i.e. we only update the
         # stats for this simulator since we aren't moving real data)
-        if inc_prop == InclusionProperty.INCLUSIVE and self.name == "L2":
+        if inc_prop == InclusionProperty.INCLUSIVE and inner_cache:
             inner_cache.back_invalidate_if_present(victim_address, debug)
 
         # pull in block from higher level cache
