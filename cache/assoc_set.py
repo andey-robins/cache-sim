@@ -35,6 +35,7 @@ class AssociativeSet:
     fifo = []
 
     name = ""
+    current_eviction = ""
 
     def __init__(self, associativity: int, name: str):
         self.name = name
@@ -43,6 +44,7 @@ class AssociativeSet:
             self.lines.append(Line())
         self.lru = []
         self.fifo = []
+        self.current_eviction = ""
 
     def lookup(self, tag: int) -> ('LookupResult', 'Line'):
         """
@@ -67,6 +69,7 @@ class AssociativeSet:
         """
         # find the block to replace
         victim_line = self.select_line_for_eviction(mode)
+        self.current_eviction = victim_line.address
 
         # output which we evict right here
         if debug:
@@ -98,6 +101,10 @@ class AssociativeSet:
         # stats for this simulator since we aren't moving real data)
         if inc_prop == InclusionProperty.INCLUSIVE and inner_cache:
             inner_cache.back_invalidate_if_present(victim_address, debug)
+
+        # we use this to turn the eviction into a transaction during backwards invalidation
+        # since we the processes are nested, not sequential
+        self.current_eviction = "" 
 
         # return block for writing in the main cache write method
         return (victim_line, did_writeback)

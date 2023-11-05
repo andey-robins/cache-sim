@@ -41,9 +41,6 @@ def cli_driver():
         # must slice off \n since we split on ' ' <space> not '\n'
         op, addr = command[0], command[1][:-1]
 
-        if i + 1 == 63568:
-            input()
-
         if debug:
             command_num = i+1  # numbers in output are 1-indexed
             print('-'*40)

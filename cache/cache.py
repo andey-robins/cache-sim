@@ -170,6 +170,12 @@ class Cache:
 
         tag, idx, _ = self.hex_addr_to_cache_idx(addr)
         victim_set = self.sets[idx]
+
+        # if we try to back-invalidate the same block we're evicting, don't perform
+        # the invalidation
+        if victim_set.current_eviction[:-1] == addr[:-1]:
+            return
+
         res, victim_line = self.lookup(tag, idx, False)
         if res == LookupResult.HIT:
             if debug:
