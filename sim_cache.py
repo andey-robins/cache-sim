@@ -4,7 +4,7 @@ from cache.cache import *
 from cache.enums import Command
 from behavior.enums import ReplacementPolicy, InclusionProperty
 
-debug = True
+debug = False
 
 
 def cli_driver():
@@ -71,6 +71,8 @@ def cli_driver():
                  ) / (l2_cache.stats['reads'])
         mem_traffic = l2_cache.stats['read_misses'] + \
             l2_cache.stats['write_misses'] + l2_cache.stats['write_backs']
+        
+    mem_traffic += l1_cache.stats['writes_to_memory']
 
     print(f"===== Simulation results (raw) =====")
     print(f'a. number of L1 reads:        {l1_cache.stats["reads"]}')

@@ -44,7 +44,9 @@ class Cache:
             'writes': 0,
             'read_misses': 0,
             'write_misses': 0,
-            'write_backs': 0
+            'write_backs': 0,
+            'writes_to_memory': 0,
+            'invalidations': 0,
         }
 
         self.size = size
@@ -111,8 +113,9 @@ class Cache:
         victim_set.update_replacement_tracking(
             tag, self.replacement_policy)
 
-        print(f'{self.name} update {"LRU" if self.replacement_policy == ReplacementPolicy.LRU else "FIFO"}')
-        print(f'{self.name} set dirty')
+        if debug:
+            print(f'{self.name} update {"LRU" if self.replacement_policy == ReplacementPolicy.LRU else "FIFO"}')
+            print(f'{self.name} set dirty')
 
     def read(self, addr: str, debug: bool):
         self.stats['reads'] += 1
@@ -150,7 +153,8 @@ class Cache:
         victim_set.update_replacement_tracking(
             tag, self.replacement_policy)
 
-        print(f'{self.name} update {"LRU" if self.replacement_policy == ReplacementPolicy.LRU else "FIFO"}')
+        if debug:
+            print(f'{self.name} update {"LRU" if self.replacement_policy == ReplacementPolicy.LRU else "FIFO"}')
 
     def lookup(self, tag: int, idx: int, debug: bool) -> ('LookupResult', Line):
         cache_set = self.sets[idx]
@@ -178,10 +182,13 @@ class Cache:
 
         res, victim_line = self.lookup(tag, idx, False)
         if res == LookupResult.HIT:
+            self.stats['invalidations'] += 1
             if debug:
                 print(f'{self.name} invalidated: {victim_line.to_eviction_string()}')
             if victim_line.dirty:
-                print("L1 writeback to main memory directly")
+                self.stats['writes_to_memory'] += 1
+                if debug:
+                    print("L1 writeback to main memory directly")
 
             victim_line.invalidate()
 
