@@ -54,7 +54,7 @@ run:
 
 zip:
 	zip -r mp1.zip sim_cache.py cache/ behavior/ helpers/ Makefile README.md LICENSE
-	@echo "Zip archive created as `mp1.zip`"
+	@echo "Zip archive created as mp1.zip"
 
 diffs-debug:
 	@echo "Manually set debug to True in sim_cache.py"

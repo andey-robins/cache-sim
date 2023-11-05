@@ -178,28 +178,29 @@ Until both policies converge as the cache size reaches a large size, the LRU pol
 #let exp2_plot() = {
   /* sizes: 2048, 4096, 8192, 16_384, 32_768, 65_536*/
 
-  let l1_ht = 0
+  // block size = 32 ; associativity = 8
+
+  let l1_ht = 0.14682
   let l1_mr = 0.1427
-  let l2_ht = 0
 
   // rather than multiply by miss rate, we'll just manually shift the decimal on the MR by 100
 
   let inc_non_data = (
-    (11, l1_ht + l1_mr * (l2_ht + 62.9713)),
-    (12, l1_ht + l1_mr * (l2_ht + 37.6174)),
-    (13, l1_ht + l1_mr * (l2_ht + 27.7715)), 
-    (14, l1_ht + l1_mr * (l2_ht + 19.4114)), 
-    (15, l1_ht + l1_mr * (l2_ht + 18.3952)), 
-    (16, l1_ht + l1_mr * (l2_ht + 18.1430))
+    (11, l1_ht + l1_mr * (0.180686 + 62.9713)),
+    (12, l1_ht + l1_mr * (0.189065 + 37.6174)),
+    (13, l1_ht + l1_mr * (0.211173 + 27.7715)), 
+    (14, l1_ht + l1_mr * (0.233936 + 19.4114)), 
+    (15, l1_ht + l1_mr * (0.288511 + 18.3952)), 
+    (16, l1_ht + l1_mr * (0.341213 + 18.1430))
   )
   
   let inc_inc_data = (
-    (11, l1_ht + 0.14523 * (l2_ht + 64.9108)), 
-    (12, l1_ht + 0.14309 * (l2_ht + 37.7944)), 
-    (13, l1_ht + 0.14277 * (l2_ht + 27.8000)), 
-    (14, l1_ht + l1_mr * (l2_ht + 19.4114)), 
-    (15, l1_ht + l1_mr * (l2_ht + 18.3952)), 
-    (16, l1_ht + l1_mr * (l2_ht + 18.3952))
+    (11, l1_ht + 0.14523 * (0.180686 + 64.9108)), 
+    (12, l1_ht + 0.14309 * (0.189065 + 37.7944)), 
+    (13, l1_ht + 0.14277 * (0.211173 + 27.8000)), 
+    (14, l1_ht + l1_mr * (0.233936 + 19.4114)), 
+    (15, l1_ht + l1_mr * (0.288511 + 18.3952)), 
+    (16, l1_ht + l1_mr * (0.341213 + 18.3952))
   )
 
   let x_axis = axis(min: 11, max: 16, step: 1, location: "bottom", title: [$log_2($L2 Cache Size$)$])
