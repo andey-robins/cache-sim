@@ -53,7 +53,7 @@ run:
 	@echo "---\nEnd of execution."
 
 zip:
-	zip -r mp1.zip sim_cache.py cache/ behavior/ helpers/ Makefile README.md LICENSE
+	zip -r mp1.zip sim_cache.py cache/ behavior/ helpers/ Makefile README.md LICENSE report.pdf
 	@echo "Zip archive created as mp1.zip"
 
 diffs-debug:
