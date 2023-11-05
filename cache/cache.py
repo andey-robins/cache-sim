@@ -230,8 +230,10 @@ class Cache:
         # we convert back from LSB to MSB with the reversed, then
         # have to convert from a reversed object to a string with join
         offset = int("".join(reversed(addr[:offset_len])), 2)
-        set_id = int(
-            "".join(reversed(addr[offset_len:(offset_len+sets_len)])), 2)
+        set_id = 0
+        if len(addr[offset_len:(offset_len+sets_len)]) != 0:
+            set_id = int(
+                "".join(reversed(addr[offset_len:(offset_len+sets_len)])), 2)
         tag = int("".join(reversed(addr[(offset_len+sets_len):])), 2)
 
         return [tag, set_id, offset]
