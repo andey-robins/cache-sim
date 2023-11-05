@@ -88,16 +88,16 @@ class AssociativeSet:
             if outer_cache:
                 outer_cache.write(victim_address, debug)
 
+        # pull in block from higher level cache
+        if outer_cache:
+            outer_cache.read(addr, debug)
+
         # in the case of an inclusive policy, when we evict from
         # L2 we must also back invalidate in L1 and issue an L1
         # write command back to *memory* (i.e. we only update the
         # stats for this simulator since we aren't moving real data)
         if inc_prop == InclusionProperty.INCLUSIVE and inner_cache:
             inner_cache.back_invalidate_if_present(victim_address, debug)
-
-        # pull in block from higher level cache
-        if outer_cache:
-            outer_cache.read(addr, debug)
 
         # return block for writing in the main cache write method
         return (victim_line, did_writeback)
